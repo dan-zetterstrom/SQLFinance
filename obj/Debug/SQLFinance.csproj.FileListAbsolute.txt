@@ -1,0 +1,14 @@
+C:\Users\daniel.zetterstrom\source\repos\SQLFinance\bin\Debug\SQLFinance.exe.config
+C:\Users\daniel.zetterstrom\source\repos\SQLFinance\bin\Debug\SQLFinance.exe
+C:\Users\daniel.zetterstrom\source\repos\SQLFinance\bin\Debug\SQLFinance.pdb
+C:\Users\daniel.zetterstrom\source\repos\SQLFinance\obj\Debug\SQLFinance.csproj.AssemblyReference.cache
+C:\Users\daniel.zetterstrom\source\repos\SQLFinance\obj\Debug\SQLFinance.csproj.SuggestedBindingRedirects.cache
+C:\Users\daniel.zetterstrom\source\repos\SQLFinance\obj\Debug\SQLFinance.csproj.ResolveComReference.cache
+C:\Users\daniel.zetterstrom\source\repos\SQLFinance\obj\Debug\SQLFinance.formMain.resources
+C:\Users\daniel.zetterstrom\source\repos\SQLFinance\obj\Debug\SQLFinance.Properties.Resources.resources
+C:\Users\daniel.zetterstrom\source\repos\SQLFinance\obj\Debug\SQLFinance.csproj.GenerateResource.cache
+C:\Users\daniel.zetterstrom\source\repos\SQLFinance\obj\Debug\SQLFinance.csproj.CoreCompileInputs.cache
+C:\Users\daniel.zetterstrom\source\repos\SQLFinance\obj\Debug\SQLFinance.exe
+C:\Users\daniel.zetterstrom\source\repos\SQLFinance\obj\Debug\SQLFinance.pdb
+C:\Users\daniel.zetterstrom\source\repos\SQLFinance\obj\Debug\SQLFinance.dataDisplay.resources
+C:\Users\daniel.zetterstrom\source\repos\SQLFinance\obj\Debug\SQLFinance.formLogin.resources
