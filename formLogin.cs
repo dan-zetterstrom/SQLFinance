@@ -31,7 +31,7 @@ namespace SQLFinance
                 }
                 else
                 {
-                    DialogResult result = MessageBox.Show("Are you want to use a blank password?", "Are you sure?", MessageBoxButtons.OKCancel);
+                    DialogResult result = MessageBox.Show("Are you sure you want to use a blank password?", "Are you sure?", MessageBoxButtons.OKCancel);
                     if (result == DialogResult.OK)
                     {
                         MainForm.UN = txtUsername.Text;

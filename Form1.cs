@@ -546,7 +546,7 @@ where ipc.MaterialTypeID = 65
 													AND
 														ipcl.CustomerID = 9625
 													AND
-														ipc.IPC_ID NOT IN (36189, 36190, 25535,25534)
+														ipc.IPC_ID NOT IN (36189, 36190, 25535,25534,36171,511848)
 													AND ipce.[Category 1] = 1))
 	-- below returns list of FG that use any ST raw material
 	and ipc.IPC_ID in (Select ipc.IPC_ID
@@ -574,7 +574,7 @@ where ipc.MaterialTypeID = 65
 													AND
 														ipcl.CustomerID = 9625
 													AND
-														ipc.IPC_ID NOT IN (36189, 36190, 25535,25534)))";
+														ipc.IPC_ID NOT IN (36189, 36190, 25535,25534,36171,511848)))";
             cat1SwitchQuery = @"Select ipc.IPC_ID
 From IPCList ipc
 where ipc.MaterialTypeID = 65
@@ -604,7 +604,7 @@ where ipc.MaterialTypeID = 65
 													AND
 														ipcl.CustomerID = 9625
 													AND
-														ipc.IPC_ID NOT IN (36189, 36190, 25535,25534)
+														ipc.IPC_ID NOT IN (36189, 36190, 25535,25534,36171,511848)
 													AND ipce.[Category 1] = 1))";
         }
 

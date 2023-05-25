@@ -33,12 +33,13 @@
             this.txtPassword = new System.Windows.Forms.TextBox();
             this.lblPassword = new System.Windows.Forms.Label();
             this.cmdLogin = new System.Windows.Forms.Button();
+            this.lblInfo = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // lblUsername
             // 
             this.lblUsername.AutoSize = true;
-            this.lblUsername.Location = new System.Drawing.Point(12, 42);
+            this.lblUsername.Location = new System.Drawing.Point(12, 55);
             this.lblUsername.Name = "lblUsername";
             this.lblUsername.Size = new System.Drawing.Size(58, 13);
             this.lblUsername.TabIndex = 0;
@@ -49,7 +50,7 @@
             this.txtUsername.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtUsername.Location = new System.Drawing.Point(76, 39);
+            this.txtUsername.Location = new System.Drawing.Point(76, 52);
             this.txtUsername.Name = "txtUsername";
             this.txtUsername.Size = new System.Drawing.Size(331, 20);
             this.txtUsername.TabIndex = 1;
@@ -85,11 +86,21 @@
             this.cmdLogin.UseVisualStyleBackColor = true;
             this.cmdLogin.Click += new System.EventHandler(this.cmdLogin_Click);
             // 
+            // lblInfo
+            // 
+            this.lblInfo.AutoSize = true;
+            this.lblInfo.Location = new System.Drawing.Point(12, 20);
+            this.lblInfo.Name = "lblInfo";
+            this.lblInfo.Size = new System.Drawing.Size(329, 13);
+            this.lblInfo.TabIndex = 5;
+            this.lblInfo.Text = "Please provide SQL Server credentials, not BatchMetrics credentials";
+            // 
             // formLogin
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(419, 156);
+            this.Controls.Add(this.lblInfo);
             this.Controls.Add(this.cmdLogin);
             this.Controls.Add(this.txtPassword);
             this.Controls.Add(this.lblPassword);
@@ -109,5 +120,6 @@
         private System.Windows.Forms.TextBox txtPassword;
         private System.Windows.Forms.Label lblPassword;
         private System.Windows.Forms.Button cmdLogin;
+        private System.Windows.Forms.Label lblInfo;
     }
 }
