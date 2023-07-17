@@ -34,6 +34,7 @@
             this.lblPassword = new System.Windows.Forms.Label();
             this.cmdLogin = new System.Windows.Forms.Button();
             this.lblInfo = new System.Windows.Forms.Label();
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.onClose);
             this.SuspendLayout();
             // 
             // lblUsername

@@ -45,5 +45,17 @@ namespace SQLFinance
                 MessageBox.Show("Username cannot be blank!");
             }
         }
+
+        private void onClose(Object sender, EventArgs e)
+        {
+            /*
+             *Overrides existing onClose method to make sure that
+             *the SQL connection is closed when the application closes
+             *
+             *SQL connection may not close if application is closed in 
+             *unorthodox ways
+             */
+            MainForm.reallyClose = true;
+        }
     }
 }

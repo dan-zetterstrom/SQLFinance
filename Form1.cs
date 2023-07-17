@@ -11,6 +11,7 @@ using Excel = Microsoft.Office.Interop.Excel;
 using System.Data.SqlClient;
 using System.IO;
 using System.Data.Odbc;
+using System.Collections;
 
 namespace SQLFinance
 {
@@ -25,8 +26,10 @@ namespace SQLFinance
         public DataSet newCat1DataSet;
         public DataSet cat2DataSet;
         public DataSet cat3DataSet;
+        public DataSet cat4DataSet;
         public DataSet catAllDataSet;
         public DataSet packagingDataSet;
+        public DataSet manualInvoiceDataSet;
         public string packagingUsedQuery;
         public string rawsUsedMcQuery;
         public string monthlyInvoicesQuery;
@@ -35,9 +38,14 @@ namespace SQLFinance
         public string cat1cat2Switch = "";
         public string cat1SwitchQuery = "";
         public string cat2SwitchQuery = "";
-        public string manualInvoices;
+        public string cat4FullDetailQuery = "";
+        public string manualInvoices = "";
+        public string manualInvoicesQuery = "";
         public string UN = "";
         public string PW = "";
+        public string cat4Numbers = "";
+        public bool reallyClose = false;
+        public ArrayList cat4InvoiceNumbers = new ArrayList();
         public Excel.Workbook excelWorkbook;
 
         /* 
@@ -60,8 +68,9 @@ namespace SQLFinance
             dtpEndDate.MaxDate = DateTime.Today;
             dtpEndDate.Value = DateTime.Today;
 
-            while (connection.State != ConnectionState.Open)
+            while (connection.State != ConnectionState.Open && !reallyClose)
             {
+                //MessageBox.Show(reallyClose.ToString());
                 formLogin loginForm = new formLogin(this);
                 loginForm.ShowDialog();
 
@@ -76,6 +85,7 @@ namespace SQLFinance
                 catch (Exception e)
                 {
                     MessageBox.Show(e.Message, "Connection Unsuccessful");
+                    System.Environment.Exit(1);
                 }
             }
         }
@@ -93,8 +103,14 @@ namespace SQLFinance
                     getCat2Data();
                     getCat3Data();
                     getCatAllData();
+                    getCat4Data();
+                    getManualInvoiceData();
 
                     excelWorkbook = excelApp.Workbooks.Add();
+                    printToWorksheet("Cat4", cat4DataSet);
+                    printManualInvoices();
+
+                    excelApp.Worksheets.Add();
                     printToWorksheet("Cat3", cat3DataSet);
 
                     excelApp.Worksheets.Add();
@@ -203,6 +219,26 @@ namespace SQLFinance
             dataDisplayForm.Show();
         }
 
+        private void getCat4Data() 
+        {
+            setStrings();
+            dataAdapter = new SqlDataAdapter(cat4FullDetailQuery, connection);
+            cat4DataSet = new DataSet();
+            dataAdapter.Fill(cat4DataSet);
+            dataDisplay dataDisplayForm = new dataDisplay(cat4DataSet);
+            dataDisplayForm.Show();
+        }
+
+        private void getManualInvoiceData()
+        {
+            setStrings();
+            dataAdapter = new SqlDataAdapter(manualInvoicesQuery, connection);
+            manualInvoiceDataSet = new DataSet();
+            dataAdapter.Fill(manualInvoiceDataSet);
+            dataDisplay dataDisplayForm = new dataDisplay(manualInvoiceDataSet);
+            dataDisplayForm.Show();
+        }
+
         private void getCatAllData()
         { 
          /*
@@ -241,6 +277,19 @@ namespace SQLFinance
                     }
                 }
             }
+
+            for (int i = 0; i < catAllDataSet.Tables[0].Rows.Count; i++) 
+            {
+                if (catAllDataSet.Tables[0].Rows[i][4].Equals("Cat4")) 
+                {
+                    cat4InvoiceNumbers.Add(catAllDataSet.Tables[0].Rows[i][2].ToString());
+                    cat4Numbers += "'" + catAllDataSet.Tables[0].Rows[i][2].ToString() + "',";
+                }
+            }
+
+            cat4Numbers = cat4Numbers.Substring(0, cat4Numbers.Length - 1);
+            setStrings();
+
             dataDisplay dataDisplayForm = new dataDisplay(catAllDataSet);
             dataDisplayForm.Show();
         }
@@ -317,6 +366,20 @@ namespace SQLFinance
             }
         }
 
+        private void printManualInvoices() 
+        {
+            int offset = cat4DataSet.Tables[0].Rows.Count;
+            int k = 0;
+            for (int i = offset; i < offset + manualInvoiceDataSet.Tables[0].Rows.Count; i++)
+            {
+                excelWorkbook.ActiveSheet.Cells[i + 2, 5] = manualInvoiceDataSet.Tables[0].Rows[k][1];
+                excelWorkbook.ActiveSheet.Cells[i + 2, 8] = manualInvoiceDataSet.Tables[0].Rows[k][2];
+                excelWorkbook.ActiveSheet.Cells[i + 2, 9] = manualInvoiceDataSet.Tables[0].Rows[k][3];
+                excelWorkbook.ActiveSheet.Cells[i + 2, 10] = manualInvoiceDataSet.Tables[0].Rows[k][0];
+                k++;
+            }
+        }
+
         private void cmdOFD_Click(object sender, EventArgs e)
         {
             /*
@@ -334,7 +397,7 @@ namespace SQLFinance
         /*
          * SQL strings could be read from external files for neater
          * code but then the .sql files would have to be packaged
-         * with and accessable to the application
+         * with and accessible to the application
          */
 
         private void setStrings() {
@@ -374,9 +437,6 @@ from
 	join StatusSub ss on bs.StatusID = ss.StatusID 
 	left join dbo.BatchHeaderProduct AS bhp ON bhp.BatchHID = bh.BatchHID
     left join (select distinct [Key],[Value] from [Parameters] where [Type]=11 and Name ='Afterburner') params on ipc.IPC_ID = params.[Key]
-	join Recipe r on r.IPCID = ipc.IPC_ID
-	join RecipeSub rs on rs.RecipeID = r.ID
-	join RecipeOperation ro on ro.SubID = rs.SubID
 	--join previousQuery on co.Invoice_ERP_Document = previousQuery.Invoice
 	
 where 
@@ -398,9 +458,11 @@ from
 	join StatusSub ss on bs.StatusID = ss.StatusID 
 	left join dbo.BatchHeaderProduct AS bhp ON bhp.BatchHID = bh.BatchHID
     left join (select distinct [Key],[Value] from [Parameters] where [Type]=11 and Name ='Afterburner') params on ipc.IPC_ID = params.[Key]
-	join Recipe r on r.IPCID = ipc.IPC_ID
+	/*join Recipe r on r.IPCID = ipc.IPC_ID
 	join RecipeSub rs on rs.RecipeID = r.ID
-	join RecipeOperation ro on ro.SubID = rs.SubID
+	join RecipeOperation ro on ro.SubID = rs.SubID*/
+	join BatchLine bl ON bl.SubID = bs.SubID
+	join BatchLineIPC blipc ON blipc.LineID = bl.LineID
 
 where bs.SubLevel = 1
 	and Invoice_ERP_Document IS NOT NULL
@@ -411,10 +473,10 @@ where bs.SubLevel = 1
 	and (@IPC_ID = 0 or bh.ProductID = @IPC_ID)	
 	and co.GL_Date between @StartDate and dbo.fn_Date_AlmostNextDay(@EndDate)
 	and co.Invoice_ERP_Document is not null
-	and ro.MaterialID in 
+	and blipc.IPCID in 
 			(select ipc.IPC_ID 
 			from IPCList ipc join IPCList_CustomerLink ipcl on ipcl.IPC_ID = ipc.IPC_ID 
-			where ipc.ipc like '%-0000'	and ipc.MaterialTypeID = 3	and ipcl.CustomerID = 9625 and ipc.IPC_ID not in (36189, 36190))
+			where ipc.ipc like '%-0000'	and ipc.MaterialTypeID IN (3,73) and ipcl.CustomerID = 9625 and ipc.IPC_ID not in (36189, 36190, 511848))
 
 group by bh.BatchNumber, bh.ScheduledStartDate, bh.Plant, u.Name, cust.Name, ipc.IPC, ipc.Description, bhp.Description, co.Invoice_ERP_ID, co.Invoice_ERP_Document, co.Invoice_Total, co.GL_Date)
 	and cust.CustomerID != 42629
@@ -423,6 +485,7 @@ group by bh.BatchNumber, bh.ScheduledStartDate, bh.Plant, u.Name, cust.Name, ipc
 	and (@IPC_ID = 0 or bh.ProductID = @IPC_ID)	
 	and co.GL_Date between @StartDate and dbo.fn_Date_AlmostNextDay(@EndDate)
 	and co.Invoice_ERP_Document is not null
+	and ipc.IPC not like '%-9999'
 	and ipc.IPC_ID in (select ipc.IPC_ID
 							from IPCList ipc join FillRequirements fr on fr.ObjectID = ipc.IPC_ID
 							where fr.ContainerTypeID in (select ipc.IPC_ID
@@ -441,10 +504,7 @@ group by bh.BatchNumber, bh.ScheduledStartDate, bh.Plant, u.Name, cust.Name, ipc
 
 group by bh.BatchNumber, bh.ScheduledStartDate, bh.Plant, u.Name, cust.Name, ipc.IPC, ipc.Description, bhp.Description, co.Invoice_ERP_ID, co.Invoice_ERP_Document, co.Invoice_Total, co.GL_Date
 
-order by Customer asc, 'Mfg. Date' desc 
-
-
-";
+order by Customer asc, 'Mfg. Date' desc";
             rawsUsedMcQuery = @"use BatchMetrics
 
 declare
@@ -492,7 +552,6 @@ where bs.SubLevel = 1
 group by bh.BatchNumber, bh.ScheduledStartDate, bh.Plant, u.Name, cust.Name, ipc.IPC, ipc.Description, bhp.Description, co.Invoice_ERP_ID, co.Invoice_ERP_Document, co.Invoice_Total, co.GL_Date
 
 order by Customer ASC";
-
             monthlyInvoicesQuery = @"DECLARE
 @StartDate dateTime = convert(datetime, '" + dtpStartDate.Value.Date.ToString("yyyy-MM-dd") + @"'),
 @EndDate dateTime = convert(datetime, '" + dtpEndDate.Value.Date.ToString("yyyy-MM-dd") + @"')
@@ -520,14 +579,50 @@ ORDER BY Invoice ASC";
 From IPCList ipc
 where ipc.MaterialTypeID = 65
 	and ipc.StatusID = 1
+	and ipc.IPC_ID in (Select DISTINCT bh.ProductID
+						from IPCList ipc join BatchHeader bh on bh.ProductID = ipc.IPC_ID
+							join BatchSub bs on bs.BatchHID = bh.BatchHID
+							join BatchLine bl on bl.SubID = bs.SubID
+							join BatchLineIPC blipc ON blipc.LineID = bl.LineID
+							JOIN CustomerOrderMOLink mlink ON mlink.BatchHid = bh.BatchHID 
+							JOIN CustomerOrderLine col ON mlink.CustomerOrderLineID = col.LineID 
+							JOIN CustomerOrder co ON col.CustomerOrderID = co.CustomerOrderID 
+						where ipc.MaterialTypeID = 65
+							and ipc.StatusID = 1
+							and co.GL_Date BETWEEN @StartDate AND @EndDate
+							and blipc.IPCID in (SELECT
+														ipc.IPC_ID
+												FROM
+													IPCList ipc
+													JOIN
+														IPCList_CustomerLink ipcl
+														ON
+														ipcl.IPC_ID = ipc.IPC_ID
+													JOIN
+														IPCList_Extensions ipce
+														ON
+														ipce.IPC_ID = IPC.IPC_ID
+												WHERE
+													ipc.IPC LIKE '%-0000'
+													AND
+														ipc.MaterialTypeID IN (3,73)
+													AND
+														ipcl.CustomerID = 9625
+													AND
+														blipc.IPCID NOT IN (36189, 36190, 25535,25534,36171,511848)))
 	-- below returns list of FG that use at least one ST category 1 raw material
-	and ipc.IPC_ID not in (Select ipc.IPC_ID
-						from IPCList ipc join Recipe r on r.IPCID = ipc.IPC_ID
-							join RecipeSub rs on rs.RecipeID = r.ID
-							join RecipeOperation ro on ro.SubID = rs.SubID
+	and ipc.IPC_ID not in (Select DISTINCT bh.ProductID
+						from BatchHeader bh join BatchSub bs on bh.BatchHID = bs.BatchHID
+							join BatchLine bl on bl.SubID = bs.SubID
+							join BatchLineIPC blipc on blipc.LineID = bl.LineID
+							join IPCList ipc ON ipc.IPC_ID = bh.ProductID
+							JOIN CustomerOrderMOLink mlink ON mlink.BatchHid = bh.BatchHID 
+							JOIN CustomerOrderLine col ON mlink.CustomerOrderLineID = col.LineID 
+							JOIN CustomerOrder co ON col.CustomerOrderID = co.CustomerOrderID 
 						where ipc.MaterialTypeID = 65
 							and ipc.StatusID = 1
-							and ro.MaterialID in (SELECT
+							and co.GL_Date  BETWEEN @StartDate AND @EndDate
+							and blipc.IPCID in (SELECT
 														ipc.IPC_ID
 												FROM
 													IPCList ipc
@@ -542,50 +637,28 @@ where ipc.MaterialTypeID = 65
 												WHERE
 													ipc.IPC LIKE '%-0000'
 													AND
-														ipc.MaterialTypeID = 3
+														ipc.MaterialTypeID IN (3,73)
 													AND
 														ipcl.CustomerID = 9625
 													AND
-														ipc.IPC_ID NOT IN (36189, 36190, 25535,25534,36171,511848)
-													AND ipce.[Category 1] = 1))
-	-- below returns list of FG that use any ST raw material
-	and ipc.IPC_ID in (Select ipc.IPC_ID
-						from IPCList ipc join Recipe r on r.IPCID = ipc.IPC_ID
-							join RecipeSub rs on rs.RecipeID = r.ID
-							join RecipeOperation ro on ro.SubID = rs.SubID
-						where ipc.MaterialTypeID = 65
-							and ipc.StatusID = 1
-							and ro.MaterialID in (SELECT
-														ipc.IPC_ID
-												FROM
-													IPCList ipc
-													JOIN
-														IPCList_CustomerLink ipcl
-														ON
-														ipcl.IPC_ID = ipc.IPC_ID
-													JOIN
-														IPCList_Extensions ipce
-														ON
-														ipce.IPC_ID = IPC.IPC_ID
-												WHERE
-													ipc.IPC LIKE '%-0000'
-													AND
-														ipc.MaterialTypeID = 3
-													AND
-														ipcl.CustomerID = 9625
-													AND
-														ipc.IPC_ID NOT IN (36189, 36190, 25535,25534,36171,511848)))";
+														blipc.IPCID NOT IN (36189, 36190, 25535,25534,36171,511848)
+													AND ipce.[Category 1] = 1))";
             cat1SwitchQuery = @"Select ipc.IPC_ID
 From IPCList ipc
 where ipc.MaterialTypeID = 65
 	and ipc.StatusID = 1
 	and ipc.IPC_ID in (Select ipc.IPC_ID
-						from IPCList ipc join Recipe r on r.IPCID = ipc.IPC_ID
-							join RecipeSub rs on rs.RecipeID = r.ID
-							join RecipeOperation ro on ro.SubID = rs.SubID
+						from BatchHeader bh join BatchSub bs on bh.BatchHID = bs.BatchHID
+							join BatchLine bl on bl.SubID = bs.SubID
+							join BatchLineIPC blipc on blipc.LineID = bl.LineID
+							join IPCList ipc ON ipc.IPC_ID = bh.ProductID
+							JOIN CustomerOrderMOLink mlink ON mlink.BatchHid = bh.BatchHID 
+							JOIN CustomerOrderLine col ON mlink.CustomerOrderLineID = col.LineID 
+							JOIN CustomerOrder co ON col.CustomerOrderID = co.CustomerOrderID 
 						where ipc.MaterialTypeID = 65
 							and ipc.StatusID = 1
-							and ro.MaterialID in (SELECT
+							and co.GL_Date  BETWEEN @StartDate AND @EndDate
+							and blipc.IPCID in (SELECT
 														ipc.IPC_ID
 												FROM
 													IPCList ipc
@@ -600,12 +673,40 @@ where ipc.MaterialTypeID = 65
 												WHERE
 													ipc.IPC LIKE '%-0000'
 													AND
-														ipc.MaterialTypeID = 3
+														ipc.MaterialTypeID IN (3,73)
 													AND
 														ipcl.CustomerID = 9625
 													AND
 														ipc.IPC_ID NOT IN (36189, 36190, 25535,25534,36171,511848)
 													AND ipce.[Category 1] = 1))";
+            cat4FullDetailQuery = @"select 
+	MfgDate,
+	Plant,
+	[Mfg.#],
+	Dryer,
+	Customer,
+	[ERP Code],
+	Description,
+	Invoice,
+	Invoice_Total,
+	filterDate
+
+                      from [BatchMetrics].[SprayTek].[tvf_CO_Batch_Dashboard] (
+                           /*CustomerID*/DEFAULT,/*IPC_ID*/DEFAULT,/*StartDate*/'" + dtpStartDate.Value.Date.ToString() + "',/*EndDate*/'" + dtpEndDate.Value.Date.ToString() + @"',/*iStatus*/DEFAULT,/*sPlant*/DEFAULT
+                          ,/*iUnitID*/DEFAULT,/*customer*/DEFAULT,/*product*/DEFAULT)
+WHERE
+	Invoice IN (" + cat4Numbers + ")";
+            manualInvoicesQuery = @"	SELECT 
+		bm.DatePosted AS 'Date',
+		Customer.Name AS Customer,
+		bm.InvoiceNumber AS 'Inv no/Adjustment no',
+		bm.TotalAmount AS 'Amount'
+	FROM [BatchMetrics].[SprayTek].[Intacct_ManualInvoice] AS bm
+		JOIN 
+			Customer ON bm.CustomerID = Customer.CustomerID
+	WHERE 
+		DatePosted BETWEEN '" + dtpStartDate.Value.Date.ToString() + "' AND '" + dtpEndDate.Value.Date.ToString() + @"'
+		AND bm.TotalAmount <> 0";
         }
 
         private void dtpStartDate_ValueChanged(object sender, EventArgs e)
